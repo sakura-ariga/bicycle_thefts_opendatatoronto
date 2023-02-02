@@ -1,36 +1,23 @@
 # Set up workspace
 install.packages("tidyverse")
 install.packages("janitor")
-
 library(tidyverse)
 library(janitor)
 
 # Create sample data 
-
-simulated_data <- 
-  sample(x = 1:300, size = 5, replace = TRUE)
-simulated_data
-
-simulated_data <- 
-  runif(
-    n = 5, 
-    min = 
-  )
-
 simulated_data <- 
   tibble(
-    "Neighbourhoods" = 1:140,
-    "Year" = sample(
-      x = c(
-        "2018", 
-        "2019", 
-        "2020", 
-        "2021",
-        "2022"
-      )
+    "Year" = c(2018:2022),
+    "Neighbourhood_ID_Most_Thefts" = sample(
+      x = c(1:140),
+      size = 5,
+      replace = TRUE
     ),
-    size = 140,
-    replace = TRUE
+    "Neighbourhood_ID_Least_Thefts" = sample(
+      x = c(1:140),
+      size = 5,
+      replace = TRUE
+    ),
+    "Theft_Number" = runif(n = 5, min = 1, max = 500)
     )
-
-# Test sample data 
+simulated_data
