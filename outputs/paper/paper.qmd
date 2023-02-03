@@ -1,0 +1,180 @@
+---
+title: "Toronto Bicycle Theft Rates Pre- and Post-COVID-19"
+date: "`r Sys.time()`"
+date-format: "D MMMM YYYY"
+author: "Sakura Ariga"
+format: pdf
+abstract: "This paper investigates bicycle theft trends in Toronto in the years before, during, and after the COVID-19 pandemic of 2020 (specifically, 2014-2021) using data from Open Data Toronto. Overall, bicycle thefts increased during the pandemic and decreased afterwards. This paper aims to address major bicycle theft trends to make bicycle-owning in Toronto a safer experience."
+editor: visual
+thanks: "Code and data are available at: https://github.com/sakura-ariga/bicycle_thefts_toronto.git."
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+# Setup workspace
+install.packages("kableExtra")
+install.packages("opendatatoronto")
+install.packages("tidyverse")
+library(opendatatoronto)
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+```
+
+## 1 Introduction
+With the growing conscious effort to be more environmentally sustainable, cities around the world have been encouraging their residents to use bicycles as an alternative and more sustainable form of transit, as opposed to cars [@fernandez-heredia]. Bicycle-riding has also been promoted as part of an effort to encourage people to engage in more active lifestyles at a time in which jobs are increasingly becoming more sedentary [@fernandez-heredia]. However, factors such as risk of injury, cost, and fear of bicycle thefts serve as key obstacles to this growing initiative [@fernandez-heredia]. Of these obstacles, bicycle theft is especially of concern, as it could also serve as a reflection of neighbourhood safety.
+  
+This paper investigates major trends in bicycle thefts in Toronto over the past 8 years, from 2014 to 2021. Studies have investigated bicycle-riding safety and attitudes towards bicycle-riding [@habib], and there is considerable attention to major crime rates in Toronto, however there is a gap in the literature regarding bicycle theft rates in particular. This paper aims to address this gap by comparing overall bicycle theft rates over time, across neighbourhoods, and across premises from which they were stolen. This paper finds that overall bicycle theft rates in Toronto since 2014 peaked in 2018 and in 2020 and that bicycles were mostly stolen when stored outside as opposed to other premises. Of the 140 neighbourhoods in Toronto, the Waterfront Communities-The Island neighbourhood saw the highest overall bicycle theft rates, while the Maple Leaf neighbourhood saw the lowest overall bicycle theft rates. This data is worth investigating because it could contribute to existing literature regarding attitudes towards bicycle-riding and could help improve the safety of bicycle-riding in Toronto. 
+
+This paper will first examine and explain the Open Data Toronto dataset that the report draws upon. It will then investigate the overall bicycle theft trends over time, with a particular focus on the years just before, during, and after the COVID-19 pandemic. Thirdly, it will compare bicycle thefts across neighbourhoods to determine which neighbourhoods experience the most and least bicycle theft rates. Fourthly, the premise types in which these bicycle thefts occurred will be investigated for overall trends to determine what premises are the most and least safe to store one’s bicycles. Finally, this paper will consider the limitations of this dataset and subsequent findings.
+
+## 2 Data
+To investigate bicycle theft trends in Toronto, the Bicycle Theft dataset [@bicyclethefts] from the Open Data Toronto portal [@opendatatoronto] was used. The R statistical programming language [@R] was used to clean and analyze this data, along with the R packages tidyverse [@tidyverse] to import and visualize data, dplyr [@dplyr] to manipulate data, ggplot2 [@ggplot2] to create graphs, RColorBrewer to change graph colours [@brewer], and kableExtra [@kableExtra] to create tables. The variables Report_Year, NeighbourhoodName, and Premises_Type were extracted from the original Open Data Toronto dataset. While the original Bicycle Theft data included both a Report_Year and Occurrence_Year variable, Report_Year was chosen as it better took into account the fact that this dataset is comprised of bicycle thefts reported to the Toronto Police Service. 
+
+@tbl-years displays the 8 years that the cleaned dataset contains bicycle theft data for, and shows the total number of bicycle thefts that occurred in each year. @fig-years graphs this as a bar graph to better visualize the trends. @tbl-years and @fig-years show that bicycle thefts steadily increased from 2014 to 2018, decreased in 2019, rose again in 2020, and dropped in 2021. From this, we can conclude that bicycle thefts increased during the COVID-19 pandemic year of 2020 but decreased post-pandemic in 2021. Most interestingly, the two years with the most bicycle thefts were 2018 and 2020. The latter could be explained by the COVID-19 pandemic that occurred that year and that led to increased unemployment levels [@statcan], which is an indicator for theft crimes [@maddah]. Furthermore, overall thefts in 2021 were much lower compared to the previous year and is the year with the second least amount of thefts over the 8-year period, second only to 2014. This aligns with decreased unemployment levels following the pandemic [@statcan].
+
+\newpage
+```{r}
+#| include: false
+# Import cleaned data from the inputs folder, originally imported via the 00-download_data.R file
+cleaned_bike_theft_data <- read.csv(here::here("inputs/data/cleaned_bike_theft_data.csv"))
+```
+
+```{r}
+#| echo: false
+#| tbl-cap: The total number of bicycle thefts that occurred in each year, from 2014 to 2021.
+#| label: tbl-years
+# Create a table displaying the years that bicycle thefts occurred and the total number of thefts that occurred in that year 
+cleaned_bike_theft_data |>  
+  group_by(Report_Year) |> 
+  summarize(Thefts = n())|>
+  knitr::kable(
+    col.names = c(
+    "Year", "Number of Thefts"),
+    digits = 1,
+    booktabs = TRUE,
+    linesep = ""
+  )
+```
+
+
+```{r}
+#| echo: false
+#| fig-cap: "Total Bicycle Thefts in Toronto By Year (2014-2021)"
+#| label: fig-years
+# Create a bar graph displaying the years that bicycle thefts occurred and the total number of thefts that occurred in that year 
+cleaned_bike_theft_data |>
+  ggplot(mapping = aes(x = Report_Year, fill = Premises_Type)) +
+  geom_bar() + 
+  labs(
+    title = "Total Bicycle Thefts in Toronto By Year",
+    x = "Year",
+    y = "Number of Bike Thefts", 
+    fill = "Type of Premise"
+  ) + 
+  theme_light() + 
+  scale_fill_brewer(palette = "Set2")
+```
+\newpage
+```{r}
+#| echo: false
+#| tbl-cap: The Toronto neighbourhoods with the most and least total bicycle thefts in the 8-year period of 2014-2021.
+#| label: tbl-neighbourhoods
+
+# Determine neighbourhood with the most bicycle thefts overall and how many total thefts occurred in it
+neighbourhood_most_bike_theft_name <- 
+  names(which.max(table(cleaned_bike_theft_data$NeighbourhoodName)))
+neighbourhood_most_bike_theft <- 
+  cleaned_bike_theft_data |>
+  filter(NeighbourhoodName == neighbourhood_most_bike_theft_name)
+neighbourhood_most_bike_theft_count <- as.numeric(nrow(neighbourhood_most_bike_theft))
+
+# Determine neighbourhood with the least bicycle thefts overall and how many total thefts occurred in it
+neighbourhood_least_bike_theft_name <- 
+  names(which.min(table(cleaned_bike_theft_data$NeighbourhoodName))) 
+neighbourhood_least_bike_theft <- 
+  cleaned_bike_theft_data |>
+  filter(NeighbourhoodName == neighbourhood_least_bike_theft_name)
+neighbourhood_least_bike_theft_count <- as.numeric(nrow(neighbourhood_least_bike_theft))
+
+# Create a table displaying the years the neighbourhoods with most and least bicycle thefts overall the total number of thefts that occurred in that neighbourhood 
+most_and_least_neighbourhoods_data <- 
+  data.frame(Type = c("Most Thefts", "Least Thefts"),
+             Neighbourhood = c(neighbourhood_most_bike_theft_name, neighbourhood_least_bike_theft_name), 
+             Thefts = c(neighbourhood_most_bike_theft_count, neighbourhood_least_bike_theft_count))
+most_and_least_neighbourhoods_data |> 
+  knitr::kable(
+    col.names = c(
+    "", "Neighbourhood", "Total Thefts"),
+    digits = 1,
+    booktabs = TRUE,
+    linesep = ""
+  )
+```
+@tbl-neighbourhoods displays the neighbourhood with the highest number of total bicycle thefts and lowest number of total bicycle thefts over the 8-year period. The Waterfront Communities-The Island neighbourhood was the neighbourhood with the most bicycle thefts overall. @fig-most-neighbourhood graphs this neighbourhood’s annual bicycle thefts over the 8-year period. As with the overall bicycle theft trends displayed in @fig-years, 2018 was the year with the most thefts, however @fig-most-neighbourhood differs from the overall bicycle theft trends in that the bicycle thefts during and post-pandemic remain similar, as the bars for 2020 and 2021 respectively are of similar height. Furthermore, pre-pandemic bicycle thefts in the Waterfront Communities-The Island neighbourhood, as seen in the bars for 2016 to 2019, are much higher than those during or post-pandemic, differing slightly from the Toronto overall trends displayed in @fig-years.
+```{r}
+#| echo: false
+#| fig-cap: "Total Bicycle Thefts in the Waterfront Communities-The Island Neighbourhood By Year (2014-2021), the Toronto neighbourhood with the most bicycle thefts total"
+#| label: fig-most-neighbourhood
+# Create a bar graph displaying the thefts that occurred in the neighbourhood with the most theft over time 
+neighbourhood_most_bike_theft |>
+  ggplot(mapping = aes(x = Report_Year, fill = Premises_Type)) +
+  geom_bar() + 
+  labs(
+    title = "Bicycle Thefts in the Waterfront Communities-The Island
+    Neighbourhood by Year",
+    x = "Year",
+    y = "Number of Bike Thefts", 
+    fill = "Type of Premise"
+  ) + 
+  theme_light() + 
+  scale_fill_brewer(palette = "Set2")
+```
+\newpage
+The neighbourhood with the least overall bicycle thefts was the Maple Leaf neighbourhood. @fig-least-neighbourhood graphs this neighbourhood’s annual bicycle thefts over the 8-year period. Unlike the overall bicycle theft trends in @fig-years, 2017 and 2020 were the years with the most thefts for this neighbourhood. However, the values for bicycle thefts during these years is only 2 thefts (as seen on the y-axis of @fig-least-neighbourhood), such that comparing it to overall bicycle theft trends is not very significant as these numbers are so small compared to the overall bicycle theft numbers. The same can be said about this neighbourhood’s bicycle theft trends regarding the pre-, during, and post-COVID-19 pandemic years.
+```{r}
+#| echo: false
+#| fig-cap: "Total Bicycle Thefts in the Maple Leaf Neighbourhood By Year (2014-2021), the Toronto neighbourhood with the least bicycle thefts total"
+#| label: fig-least-neighbourhood
+# Create a bar graph displaying the thefts that occurred in the neighbourhood with the least theft over time  
+neighbourhood_least_bike_theft |>
+  ggplot(mapping = aes(x = Report_Year, fill = Premises_Type)) +
+  geom_bar() + 
+  labs(
+    title = "Bicycle Thefts in the Maple Leaf
+    Neighbourhood by Year",
+    x = "Year",
+    y = "Number of Bike Thefts", 
+    fill = "Type of Premise"
+  ) + 
+  theme_light() + 
+  scale_fill_brewer(palette = "Set2")
+```
+The difference between the amount of bicycle thefts reported in the neighbourhood with the most thefts, Waterfront Communities-The Island, versus the least thefts, Maple Leaf, could partly be explained by the type of premises where the bicycle thefts occurred. @fig-premises shows the total bicycle thefts reported in Toronto by premises type between 2014-2021. This graph shows that bicycle thefts occurred the most outside, followed by at apartments, and then at houses. The fill values of @fig-most-neighbourhood show that most thefts in the Waterfront Communities-The Island neighbourhood occurred outside and at apartments, the top two premise locations that overall bicycle thefts took place at. The fill values of @fig-least-neighbourhood show that most thefts in the Maple Leaf neighbourhood occurred at houses and at apartments, and not outside. One potential explanation for the difference in bicycle theft rates between these two neighbourhoods is that perhaps the Waterfront Communities-The Island neighbourhood is comprised of majority apartment buildings and outdoor bicycle parking areas, while the Maple Leaf neighbourhood is perhaps majority houses and therefore has a smaller chance of bicycle theft overall. 
+```{r}
+#| echo: false
+#| fig-cap: "Total Bicycle Thefts in Toronto By Type of Premise Where Theft Occurred (2014-2021)"
+#| label: fig-premises
+# Create a bar graph displaying the type of premises where bicycles thefts occurred
+cleaned_bike_theft_data |>
+  ggplot(mapping = aes(x = Premises_Type, fill = Premises_Type)) +
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 45)) + 
+  labs(
+    title = "Bicycle Thefts in Toronto By Premises Type",
+    x = "Type of Premise",
+    y = "Number of Bike Thefts"
+  ) + 
+  theme_light() + 
+  scale_fill_brewer(palette = "Set2") + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+A key limitation of this data is that the location of the data is not entirely accurate, as identified by Open Data Toronto themselves. The portal stated that the exact location of bicycle theft occurrences were generalized to the nearest intersection for privacy reasons [@bicyclethefts]. Thus, the variable for neighbourhood in which bicycle thefts occurred may not be accurate [@bicyclethefts]. As such, this data cannot be reliably compared to other crime-related datasets, preventing meaningful comparison with overall crime rates or with crime victim profiles [@bicyclethefts]. Another limitation is that the data was collected by reports made to the Toronto Police, and is a reflection of the bicycle thefts that occurred to victims who feel comfortable interacting with Toronto Police. Thus, it may exclude bicycle thefts that occurred to people who are not as comfortable with the municipal police, such as racialized communities. 
+
+## 3 Conclusion 
+Overall, bicycle thefts in Toronto were higher during COVID-19 (2020) when compared to post-COVID-19 (2021), but the most thefts occurred in 2018. The neighbourhood with the most overall bicycle thefts was Waterfront Communities-The Island, while the neighbourhood with the least overall bicycle thefts was Maple Leaf. This could perhaps be due to differences in locations where bicycles were stolen from, in which outdoors was the location from which bicycles were stolen from the most. However, it is important to keep in mind that these findings are not entirely accurate due to the offsetting of the location data to the nearest intersection [@bicyclethefts]. 
+
+\newpage
+# References
