@@ -1,10 +1,10 @@
-# download Bike Theft data from Open Data Toronto
-
+# Set up workspace
 install.packages("opendatatoronto")
 install.packages("tidyverse")
 library(opendatatoronto)
 library(dplyr)
 
+# Download raw Bike Theft data from Open Data Toronto
 # get package
 package <- show_package("c7d34d9b-23d2-44fe-8b3b-cd82c8b38978")
 package
@@ -16,7 +16,8 @@ datastore_resources <- filter(resources, tolower(format) %in% c('csv', 'geojson'
 bike_theft_raw_data <- filter(datastore_resources, row_number()==1) %>% get_resource()
 bike_theft_raw_data
 
+# Saved raw Bike Theft data to inputs folder
 write.csv(
   x = bike_theft_raw_data, 
-  "/cloud/project/inputs/data/bike_theft_raw_data.csv"
+  "inputs/data/bike_theft_raw_data.csv"
 )
