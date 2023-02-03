@@ -1,1 +1,5 @@
-# starter_folder_final
+# Overview of the Paper 
+Bicycle theft data from the Open Data Toronto portal was used to analyze major bicycle theft trends in Toronto before, during, and after the COVID-19 pandemic. It considered total bicycle thefts per year, across the 140 neighbourhoods in Toronto, and across the type of premises from which the bicycles were stolen. Overall, the paper found that bicycle thefts in Toronto decreased post-pandemic and that bicycles were most often stolen from outdoor premises. 
+
+# Structure of Folders
+The "inputs" folder contains raw data of bicycle thefts in Toronto, downloaded from Open Data Toronto, and the cleaned version of that data. The "outputs" folder contains the final paper and the bibliographic references. The "scripts" folder contains R scripts used to import and clean the raw data, as well as simulations of the data. 
