@@ -4,7 +4,7 @@ install.packages("janitor")
 library(tidyverse)
 library(janitor)
 
-# Create sample data 
+# Create sample data to simulate bicycle theft in Toronto data 
 simulated_data <- 
   tibble(
     "Year" = c(2018:2022),
@@ -20,4 +20,12 @@ simulated_data <-
     ),
     "Theft_Number" = runif(n = 5, min = 1, max = 500)
     )
+
+# View simulated data
 simulated_data
+
+# # Save simulated data to inputs folder
+write.csv(
+  x = simulated_data, 
+  "inputs/data/simulated_data.csv"
+)
